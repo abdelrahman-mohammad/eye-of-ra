@@ -1,0 +1,29 @@
+name: Mirror from GitLab
+
+on:
+  schedule:
+    - cron: '0 */1 * * *'  # Run every 1 hour
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Mirror from GitLab
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git remote add gitlab ${{ secrets.GITLAB_REPO_URL }}
+          git fetch gitlab --tags --force
+          git push origin --all --force
+          git push origin --tags --force
+        env:
+          GIT_USERNAME: ${{ github.actor }}
+          GIT_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+          GITLAB_USERNAME: oauth2
+          GITLAB_PASSWORD: ${{ secrets.GITLAB_TOKEN }}
